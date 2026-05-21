@@ -1,8 +1,5 @@
 import React, { useState } from "react";
 
-import { Amplify } from "aws-amplify";
-import outputs from "./amplify_outputs.json";
-
 export default function App() {
   const [step, setStep] = useState(0);
   const [downloadLink, setDownloadLink] = useState("");
