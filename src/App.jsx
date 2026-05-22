@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-
-import { Authenticator } from "@aws-amplify/ui-react";
-import "@aws-amplify/ui-react/styles.css";
+import { UserAuth } from "./components/UserAuth";
+import ImageUploader from "./components/ImageUploader";
 
 // ⚠️ 본인의 S3 버킷 정보로 꼭 변경해 주세요!
-const S3_BUCKET_NAME = "test-file-system-boeun";
-const AWS_REGION = "ap-northeast-2";
-const S3_BASE_URL = `https://${S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com`;
+const S3_BASE_URL = `https://${import.meta.env.VITE_S3_BUCKET_NAME}.s3.${import.meta.env.VITE_AWS_REGION}.amazonaws.com`;
+console.log("현재 요청 주소:", S3_BASE_URL);
 
 function App() {
   const [file, setFile] = useState(null);
@@ -106,160 +104,8 @@ function App() {
       }}
     >
       <h2>☁️ AWS S3 버킷 다이렉트 연동 테스트</h2>
-
-      {/* 업로드 섹션 */}
-      <div
-        style={{
-          border: "2px dashed #3182ce",
-          borderRadius: "10px",
-          padding: "30px",
-          textAlign: "center",
-          backgroundColor: "#f7fafc",
-          marginBottom: "40px",
-        }}
-      >
-        <input
-          type="file"
-          onChange={handleFileChange}
-          style={{ marginBottom: "15px" }}
-        />
-        {file && (
-          <p style={{ fontSize: "14px", color: "#4a5568" }}>
-            선택된 파일: {file.name}
-          </p>
-        )}
-        <button
-          onClick={handleFileUpload}
-          disabled={uploading}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#3182ce",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
-        >
-          {uploading ? "업로드 중..." : "S3에 업로드하기"}
-        </button>
-      </div>
-
-      {/* 📋 S3 파일 리스트 섹션 */}
-      <div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "15px",
-          }}
-        >
-          <h3 style={{ margin: 0 }}>
-            📋 현재 S3 버킷 파일 목록 ({fileList.length})
-          </h3>
-          <button
-            onClick={fetchS3Files}
-            style={{ padding: "5px 10px", fontSize: "12px", cursor: "pointer" }}
-          >
-            🔄 새로고침
-          </button>
-        </div>
-
-        {loadingList ? (
-          <p>목록을 불러오는 중...</p>
-        ) : fileList.length === 0 ? (
-          <p style={{ color: "#a0aec0", textAlign: "center", padding: "20px" }}>
-            버킷이 비어있습니다. 파일을 업로드해 보세요!
-          </p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {fileList.map((f, index) => (
-              <li
-                key={index}
-                style={{
-                  padding: "12px",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "6px",
-                  marginBottom: "10px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  backgroundColor: "#fff",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                }}
-              >
-                <div>
-                  <a
-                    href={f.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      textDecoration: "none",
-                      color: "#2b6cb0",
-                      fontWeight: "bold",
-                      wordBreak: "break-all",
-                    }}
-                  >
-                    {f.name}
-                  </a>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "#718096",
-                      marginTop: "4px",
-                    }}
-                  >
-                    용량: {f.size} | 업로드: {f.date}
-                  </div>
-                </div>
-                <a
-                  href={f.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    padding: "5px 10px",
-                    backgroundColor: "#edf2f7",
-                    color: "#4a5568",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    textDecoration: "none",
-                  }}
-                >
-                  열기 ↗
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div>
-        <Authenticator>
-          {({ signOut, user }) => (
-            <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
-              {/* 로그인 성공 시 유저 정보에 접근 가능 */}
-              <h1>안녕하세요, {user?.username}님! 👋</h1>
-              <p>성공적으로 Cognito 로그인 연동이 완료되었습니다.</p>
-
-              {/* 로그아웃 버튼 (Amplify가 제공하는 signOut 함수 호출) */}
-              <button
-                onClick={signOut}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#ff4d4d",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                }}
-              >
-                로그아웃
-              </button>
-            </main>
-          )}
-        </Authenticator>
-      </div>
+      <ImageUploader />
+      <UserAuth />
     </div>
   );
 }
