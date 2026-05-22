@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 // ⚠️ UserAuth 대신 프로젝트 구조에 맞는 Authenticator가 필요하다면 변경하셔도 됩니다.
 import { UserAuth } from "./components/UserAuth";
 import ImageUploader from "./components/ImageUploader";
+import FileDownloader from "./components/FileDownloader";
 
 // 환경 변수 기반 S3 베이스 주소 조합
 const S3_BASE_URL = `https://${import.meta.env.VITE_S3_BUCKET_NAME}.s3.${import.meta.env.VITE_AWS_REGION}.amazonaws.com`;
@@ -31,7 +32,8 @@ function App() {
           contents[i].getElementsByTagName("LastModified")[0].textContent;
 
         files.push({
-          name: key,
+          name: key, // 화면 표시용 이름 (그대로)
+          key: key, // ✅ 이것만 추가! S3 key = 다운로드에 사용
           url: `${S3_BASE_URL}/${key}`,
           size: (parseInt(size) / 1024).toFixed(2) + " KB",
           date: new Date(lastModified).toLocaleString(),
@@ -77,6 +79,7 @@ function App() {
       {/* 🚀 이미지 업로더 부품 블록 장착! */}
       {/* 업로드가 성공하면 목록이 갱신되도록 함수를 전달합니다. */}
       <ImageUploader onUploadSuccess={fetchS3Files} />
+      <FileDownloader files={fileList} />
 
       <hr
         style={{
