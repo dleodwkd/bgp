@@ -60,7 +60,8 @@ export default function ImageUploader({ onUploadSuccess }) {
         alert("S3에 이미지 업로드 성공! 🎉");
 
         const s3BucketName = import.meta.env.VITE_S3_BUCKET_NAME; // ⭕ 이것도 환경변수로 처리하면 훌륭합니다!
-        const finalUrl = `https://${s3BucketName}.s3.ap-northeast-2.amazonaws.com/${key}`;
+        // 💡 리전까지 환경 변수로 처리한 가장 안전한 형태
+        const finalUrl = `https://${s3BucketName}.s3.${import.meta.env.VITE_AWS_REGION}.amazonaws.com/${key}`;
         setImageUrl(finalUrl);
 
         // ⭕ 업로드 성공 후 상단 App.jsx의 리스트를 새로고침하라고 신호 주기
