@@ -9,7 +9,7 @@ export default function FileDownloader({ files }) {
     try {
       // [STEP 1] 내 EC2 백엔드에게 일회용 다운로드(S3 Presigned URL) 주소 요청하기
       // 백엔드 엔드포인트(예: /api/download/presigned-url)는 본인의 백엔드 설계에 맞게 수정하세요.
-      const backendUrl = `http://${import.meta.env.VITE_EC2_IP}:5000/api/download/presigned-url`;
+      const backendUrl = `http://${import.meta.env.VITE_EC2_IP}/api/download/presigned-url`;
 
       const response = await fetch(backendUrl, {
         method: "POST",
