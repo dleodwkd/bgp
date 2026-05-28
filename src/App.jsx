@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { UserAuth } from "./components/UserAuth";
 import ImageUploader from "./components/ImageUploader";
 import FileDownloader from "./components/FileDownloader";
+import RegisterForm from "./components/Login";
 
 // 환경 변수 기반 S3 베이스 주소 조합
 const S3_BASE_URL = `https://${import.meta.env.VITE_S3_BUCKET_NAME}.s3.${import.meta.env.VITE_AWS_REGION}.amazonaws.com`;
@@ -64,8 +65,8 @@ function App() {
     >
       <h2>☁️ AWS S3 버킷 다이렉트 연동 테스트</h2>
 
-      {/* 🔐 로그인/인증 영역 */}
-      <UserAuth />
+      {/* 로그인, 회원가입*/}
+      <RegisterForm />
 
       <hr
         style={{
