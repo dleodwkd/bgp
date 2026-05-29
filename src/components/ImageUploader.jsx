@@ -25,7 +25,7 @@ export default function ImageUploader({ onUploadSuccess }) {
       // ──────────────────────────────────────────────────────────
       // 💡 팁: 현재 도메인이 연동 전이라면 'http://<당신의_EC2_IP>/api/upload/presigned-url' 주소를 적습니다.
       // 💡 대괄호<>는 지우고 IP를 적으셔야 합니다. (예: http://13.125.xx.xx/api/...)
-      const backendUrl = `${import.meta.env.VITE_EC2_IP}upload/presigned-url`;
+      const backendUrl = `${import.meta.env.VITE_EC2_IP}/api/upload/presigned-url`;
 
       const response = await fetch(backendUrl, {
         method: "POST",
