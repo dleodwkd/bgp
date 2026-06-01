@@ -34,7 +34,7 @@ export default function FileList() {
         url = `${API_BASE}/api/files/recent?email=${user.email}`;
       else if (mode === "trash")
         url = `${API_BASE}/api/files/trash?email=${user.email}`;
-      else url = `${API_BASE}/api/files`;
+      else url = `${API_BASE}/api/files?email=${user.email}`;
 
       const res = await fetch(url);
       const data = await res.json();
@@ -74,6 +74,14 @@ export default function FileList() {
     alert("로그아웃 되었습니다.");
     navigate("/"); // 로그인 페이지로 이동
   };
+
+  // ── 검색 state 추가 ──────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // ── 검색 필터링 (프론트에서 처리) ────────────────────────
+  const filteredFiles = fileList.filter((f) =>
+    f.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
     <div className="app-layout">
@@ -158,7 +166,12 @@ export default function FileList() {
           <h1 className="topbar-title">내 파일</h1>
           <div className="search-wrap">
             <span>🔍</span>
-            <input type="text" placeholder="파일 검색..." />
+            <input
+              type="text"
+              placeholder="파일 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)} // ✅ 추가
+            />
           </div>
           {/* 업로더 컴포넌트 장착 - 성공 시 리스트 갱신 */}
           <ImageUploader onUploadSuccess={() => fetchFiles(activeMenu)} />
@@ -205,22 +218,19 @@ export default function FileList() {
           </h3>
 
           {loadingList ? (
-            <p style={{ color: "#666", fontSize: "14px" }}>
-              목록을 불러오는 중...
-            </p>
-          ) : fileList.length === 0 ? (
+            <p>목록을 불러오는 중...</p>
+          ) : filteredFiles.length === 0 ? ( // ✅ fileList → filteredFiles
             <div className="drop-zone-inline">
               <span>☁️</span>
               <span>
-                버킷이 비어있습니다. <strong>상단의 업로드 버튼</strong>을
-                이용해 파일을 추가해 보세요!
+                {searchQuery ? "검색 결과가 없습니다." : "버킷이 비어있습니다."}
               </span>
             </div>
           ) : (
-            /* 🚀 기존의 다운로더 부품에 가공된 S3 파일 리스트 주입 */
             <FileDownloader
-              files={fileList}
-              onRefresh={() => fetchFiles(activeMenu)} // ✅ 추가
+              files={filteredFiles}
+              onRefresh={() => fetchFiles(activeMenu)}
+              activeMenu={activeMenu}
             />
           )}
         </div>
