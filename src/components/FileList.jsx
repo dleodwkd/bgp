@@ -218,7 +218,10 @@ export default function FileList() {
             </div>
           ) : (
             /* 🚀 기존의 다운로더 부품에 가공된 S3 파일 리스트 주입 */
-            <FileDownloader files={fileList} />
+            <FileDownloader
+              files={fileList}
+              onRefresh={() => fetchFiles(activeMenu)} // ✅ 추가
+            />
           )}
         </div>
       </main>

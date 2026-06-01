@@ -1,69 +1,73 @@
 import React, { useState } from "react";
 
-export default function FileDownloader({ files }) {
+const API_BASE = import.meta.env.VITE_EC2_IP;
+
+export default function FileDownloader({ files, onRefresh }) {
   const [downloading, setDownloading] = useState({});
 
-  const handleDownload = async (fileKey, fileName) => {
+  // ── 다운로드 ──────────────────────────────────────────────
+  const handleDownload = async (fileKey, fileName, fileId) => {
     setDownloading((prev) => ({ ...prev, [fileKey]: true }));
-
     try {
-      // [STEP 1] 내 EC2 백엔드에게 일회용 다운로드(S3 Presigned URL) 주소 요청하기
-      // 백엔드 엔드포인트(예: /api/download/presigned-url)는 본인의 백엔드 설계에 맞게 수정하세요.
-      const backendUrl = `${import.meta.env.VITE_EC2_IP}/api/download/presigned-url`;
-
-      const response = await fetch(backendUrl, {
+      const response = await fetch(`${API_BASE}/api/download/presigned-url`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fileKey: fileKey, // S3에 저장된 파일 경로/이름
+          fileKey,
+          fileId, // ✅ downloaded_at 업데이트용
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("백엔드에서 다운로드 URL을 가져오지 못했습니다.");
-      }
+      if (!response.ok) throw new Error("다운로드 URL 발급 실패");
 
-      // 백엔드가 발급해 준 일회용 다운로드 주소 꺼내기
       const { url } = await response.json();
 
-      // [STEP 2] 발급받은 URL로 브라우저에서 직접 강제 다운로드 처리
       const fileResponse = await fetch(url);
-      if (!fileResponse.ok)
-        throw new Error("S3에서 파일을 가져오는데 실패했습니다.");
+      if (!fileResponse.ok) throw new Error("S3 파일 가져오기 실패");
 
-      const blob = await fileResponse.blob(); // 파일 바이너리 데이터 가져오기
+      const blob = await fileResponse.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
-
-      // 가상 <a> 태그를 만들어 브라우저 다운로드 트리거
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.download = fileName || fileKey.split("/").pop(); // 다운로드될 파일명 지정
+      link.download = fileName || fileKey.split("/").pop();
       document.body.appendChild(link);
       link.click();
-
-      // 다운로드 완료 후 링크 및 오브젝트 메모리 해제
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-      console.error("다운로드 실패:", error);
-      alert(`다운로드 중 오류 발생: ${error.message}`);
+      alert(`다운로드 오류: ${error.message}`);
     } finally {
       setDownloading((prev) => ({ ...prev, [fileKey]: false }));
     }
   };
 
+  // ── 즐겨찾기 토글 ─────────────────────────────────────────
+  const handleFavorite = async (fileId) => {
+    await fetch(`${API_BASE}/api/files/${fileId}/favorite`, {
+      method: "PATCH",
+    });
+    if (onRefresh) onRefresh(); // 목록 새로고침
+  };
+
+  // ── 휴지통으로 이동 ───────────────────────────────────────
+  const handleTrash = async (fileId) => {
+    if (!confirm("휴지통으로 이동하시겠습니까?")) return;
+    await fetch(`${API_BASE}/api/files/${fileId}/trash`, {
+      method: "PATCH",
+    });
+    if (onRefresh) onRefresh();
+  };
+
+  // ── 휴지통에서 복원 ───────────────────────────────────────
+  const handleRestore = async (fileId) => {
+    await fetch(`${API_BASE}/api/files/${fileId}/restore`, {
+      method: "PATCH",
+    });
+    if (onRefresh) onRefresh();
+  };
+
   return (
-    <div
-      style={{
-        padding: "20px",
-        border: "1px solid #ccc",
-        borderRadius: "8px",
-        marginTop: "20px",
-      }}
-    >
-      <h3>S3 파일 다운로드 목록</h3>
+    <div style={{ marginTop: "10px" }}>
       {files && files.length > 0 ? (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {files.map((file) => (
@@ -77,23 +81,55 @@ export default function FileDownloader({ files }) {
                 borderBottom: "1px solid #eee",
               }}
             >
-              <span>
-                {file.name} ({file.type})
+              {/* 파일 정보 */}
+              <span style={{ flex: 1 }}>
+                {file.is_favorite ? "⭐ " : ""}
+                {file.name}
+                <span
+                  style={{ color: "#999", fontSize: "12px", marginLeft: "8px" }}
+                >
+                  {file.size} · {file.date}
+                </span>
               </span>
-              <button
-                onClick={() => handleDownload(file.key, file.name)}
-                disabled={downloading[file.key]}
-                style={{
-                  padding: "5px 10px",
-                  backgroundColor: "#007bff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                {downloading[file.key] ? "다운로드 중..." : "다운로드"}
-              </button>
+
+              {/* 액션 버튼 */}
+              <div style={{ display: "flex", gap: "6px" }}>
+                {/* 다운로드 */}
+                <button
+                  onClick={() => handleDownload(file.key, file.name, file.id)}
+                  disabled={downloading[file.key]}
+                  style={btnStyle("#007bff")}
+                >
+                  {downloading[file.key] ? "..." : "⬇ 다운로드"}
+                </button>
+
+                {/* 즐겨찾기 (휴지통 탭에선 숨김) */}
+                {!file.is_deleted && (
+                  <button
+                    onClick={() => handleFavorite(file.id)}
+                    style={btnStyle(file.is_favorite ? "#f59e0b" : "#6b7280")}
+                  >
+                    {file.is_favorite ? "★ 해제" : "☆ 즐겨찾기"}
+                  </button>
+                )}
+
+                {/* 휴지통 이동 / 복원 */}
+                {file.is_deleted ? (
+                  <button
+                    onClick={() => handleRestore(file.id)}
+                    style={btnStyle("#10b981")}
+                  >
+                    ↩ 복원
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleTrash(file.id)}
+                    style={btnStyle("#ef4444")}
+                  >
+                    🗑 삭제
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
@@ -103,3 +139,14 @@ export default function FileDownloader({ files }) {
     </div>
   );
 }
+
+// 버튼 공통 스타일 함수
+const btnStyle = (bg) => ({
+  padding: "5px 10px",
+  backgroundColor: bg,
+  color: "white",
+  border: "none",
+  borderRadius: "4px",
+  cursor: "pointer",
+  fontSize: "12px",
+});
