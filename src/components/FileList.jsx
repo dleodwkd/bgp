@@ -161,7 +161,7 @@ export default function FileList() {
             <input type="text" placeholder="파일 검색..." />
           </div>
           {/* 업로더 컴포넌트 장착 - 성공 시 리스트 갱신 */}
-          <ImageUploader onUploadSuccess={fetchS3Files} />
+          <ImageUploader onUploadSuccess={() => fetchFiles(activeMenu)} />
         </header>
 
         {/* 통계 카드 행 */}
