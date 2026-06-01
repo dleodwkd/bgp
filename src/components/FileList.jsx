@@ -40,6 +40,7 @@ export default function FileList() {
       const data = await res.json();
 
       // DB 데이터를 기존 FileDownloader가 쓰는 형식으로 변환
+      // FileList.jsx — fetchFiles 함수 안 이 부분
       const files = data
         .filter((f) => f.file_name !== "__folder__")
         .map((f) => ({
@@ -48,8 +49,9 @@ export default function FileList() {
           key: f.s3_key,
           size: f.file_size ? (f.file_size / 1024).toFixed(2) + " KB" : "-",
           date: new Date(f.created_at).toLocaleString(),
-          is_favorite: f.is_favorite,
-          is_deleted: f.is_deleted,
+          is_favorite: f.is_favorite === 1 || f.is_favorite === true, // ✅
+          is_shared: f.is_shared === 1 || f.is_shared === true, // ✅
+          is_deleted: f.is_deleted === 1 || f.is_deleted === true, // ✅
         }));
 
       setFileList(files);
@@ -82,6 +84,13 @@ export default function FileList() {
   const filteredFiles = fileList.filter((f) =>
     f.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+  const menuTitle = {
+    shared: "공유된 파일",
+    mine: "내 파일",
+    favorites: "즐겨찾기",
+    recent: "최근 항목",
+    trash: "휴지통",
+  };
 
   return (
     <div className="app-layout">
@@ -161,21 +170,25 @@ export default function FileList() {
 
       {/* ── 메인 콘텐츠 (Main Content) ─────────────────────────── */}
       <main className="main-content">
-        {/* 상단 툴바 */}
+        {/* 상단바 */}
         <header className="topbar">
-          <h1 className="topbar-title">내 파일</h1>
-          <div className="search-wrap">
-            <span>🔍</span>
-            <input
-              type="text"
-              placeholder="파일 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} // ✅ 추가
-            />
-          </div>
-          {/* 업로더 컴포넌트 장착 - 성공 시 리스트 갱신 */}
-          <ImageUploader onUploadSuccess={() => fetchFiles(activeMenu)} />
+          {/* topbar-title 부분 */}
+          <h1 className="topbar-title">{menuTitle[activeMenu]}</h1>
+          {/* ImageUploader 여기서 제거 */}
         </header>
+        <div className="search-wrap">
+          <span>🔍</span>
+          <input
+            type="text"
+            placeholder="파일 검색..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        {/* ✅ 검색바 바로 아래 */}
+        <div style={{ marginTop: "16px" }}>
+          <ImageUploader onUploadSuccess={() => fetchFiles(activeMenu)} />
+        </div>
 
         {/* 통계 카드 행 */}
         <div className="stats-row">
