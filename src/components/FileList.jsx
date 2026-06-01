@@ -4,10 +4,9 @@ import ImageUploader from "./ImageUploader";
 import FileDownloader from "./FileDownloader";
 import "../App.css";
 
-// 환경 변수 기반 S3 베이스 주소 조합
-const S3_BASE_URL = `https://${import.meta.env.VITE_S3_BUCKET_NAME}.s3.${import.meta.env.VITE_AWS_REGION}.amazonaws.com`;
-
 export default function FileList() {
+  const API_BASE = import.meta.env.VITE_EC2_IP;
+
   const navigate = useNavigate();
   const [fileList, setFileList] = useState([]); // S3 파일 목록 저장
   const [loadingList, setLoadingList] = useState(false);
@@ -15,62 +14,63 @@ export default function FileList() {
 
   // LocalStorage에서 로그인한 유저 정보 가져오기 (없으면 기본값)
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
+    const savedUser = sessionStorage.getItem("user");
     return savedUser
       ? JSON.parse(savedUser)
       : { nickname: "게스트", email: "guest@example.com" };
   });
 
-  // S3 버킷의 모든 파일 목록을 가져오는 함수 (XML 파싱)
-  const fetchS3Files = async () => {
+  // fetchS3Files 함수 전체를 아래로 교체
+  const fetchFiles = async (mode = "shared") => {
     setLoadingList(true);
     setError(null);
     try {
-      const response = await fetch(S3_BASE_URL);
-      if (!response.ok)
-        throw new Error(
-          "파일 목록을 불러오지 못했습니다. S3 CORS 설정을 확인하세요.",
-        );
+      let url;
+      if (mode === "mine")
+        url = `${API_BASE}/api/files/mine?email=${user.email}`;
+      else if (mode === "favorites")
+        url = `${API_BASE}/api/files/favorites?email=${user.email}`;
+      else if (mode === "recent")
+        url = `${API_BASE}/api/files/recent?email=${user.email}`;
+      else if (mode === "trash")
+        url = `${API_BASE}/api/files/trash?email=${user.email}`;
+      else url = `${API_BASE}/api/files`;
 
-      const xmlText = await response.text();
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+      const res = await fetch(url);
+      const data = await res.json();
 
-      const contents = xmlDoc.getElementsByTagName("Contents");
-      const files = [];
-
-      for (let i = 0; i < contents.length; i++) {
-        const key = contents[i].getElementsByTagName("Key")[0].textContent;
-        const size = contents[i].getElementsByTagName("Size")[0].textContent;
-        const lastModified =
-          contents[i].getElementsByTagName("LastModified")[0].textContent;
-
-        files.push({
-          name: key,
-          key: key,
-          url: `${S3_BASE_URL}/${key}`,
-          size: (parseInt(size) / 1024).toFixed(2) + " KB",
-          date: new Date(lastModified).toLocaleString(),
-        });
-      }
+      // DB 데이터를 기존 FileDownloader가 쓰는 형식으로 변환
+      const files = data
+        .filter((f) => f.file_name !== "__folder__")
+        .map((f) => ({
+          id: f.id,
+          name: f.file_name,
+          key: f.s3_key,
+          size: f.file_size ? (f.file_size / 1024).toFixed(2) + " KB" : "-",
+          date: new Date(f.created_at).toLocaleString(),
+          is_favorite: f.is_favorite,
+          is_deleted: f.is_deleted,
+        }));
 
       setFileList(files);
-    } catch (error) {
-      console.error("S3 List Error:", error);
-      setError(error.message);
+    } catch (err) {
+      setError("파일 목록을 불러오지 못했습니다.");
     } finally {
       setLoadingList(false);
     }
   };
 
-  // 컴포넌트 로드 시 S3 파일 목록 조회
+  // activeMenu state 추가 (사이드바 메뉴 선택 상태)
+  const [activeMenu, setActiveMenu] = useState("shared");
+
+  // useEffect 수정
   useEffect(() => {
-    fetchS3Files();
-  }, []);
+    fetchFiles(activeMenu);
+  }, [activeMenu]);
 
   // 로그아웃 처리
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
     alert("로그아웃 되었습니다.");
     navigate("/"); // 로그인 페이지로 이동
   };
@@ -88,14 +88,40 @@ export default function FileList() {
         </div>
 
         <nav className="sidebar-nav">
-          <div className="nav-section">Storage</div>
-          <div className="nav-item active">📁 내 파일</div>
-          <div className="nav-item">🔗 공유된 파일</div>
-          <div className="nav-item">⭐ 즐겨찾기</div>
-          <div className="nav-item">🕐 최근 항목</div>
-          <div className="nav-section">관리</div>
-          <div className="nav-item">⚙️ 설정</div>
-          <div className="nav-item">🗑 휴지통</div>
+          <div
+            className={`nav-item ${activeMenu === "shared" ? "active" : ""}`}
+            onClick={() => setActiveMenu("shared")}
+          >
+            🔗 공유된 파일
+          </div>
+
+          <div
+            className={`nav-item ${activeMenu === "mine" ? "active" : ""}`}
+            onClick={() => setActiveMenu("mine")}
+          >
+            📁 내 파일
+          </div>
+
+          <div
+            className={`nav-item ${activeMenu === "favorites" ? "active" : ""}`}
+            onClick={() => setActiveMenu("favorites")}
+          >
+            ⭐ 즐겨찾기
+          </div>
+
+          <div
+            className={`nav-item ${activeMenu === "recent" ? "active" : ""}`}
+            onClick={() => setActiveMenu("recent")}
+          >
+            🕐 최근 항목
+          </div>
+
+          <div
+            className={`nav-item ${activeMenu === "trash" ? "active" : ""}`}
+            onClick={() => setActiveMenu("trash")}
+          >
+            🗑 휴지통
+          </div>
         </nav>
 
         {/* 스토리지 사용량 바 */}
