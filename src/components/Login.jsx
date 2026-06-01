@@ -14,6 +14,7 @@ export default function Login() {
 
   const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+  // handleLoginSubmit 전체 교체
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!form.email || !form.password) {
@@ -28,19 +29,15 @@ export default function Login() {
       const res = await fetch(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form), // { email, password } → 백엔드 필드명과 일치 ✅
+        body: JSON.stringify(form), // { email, password }
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // 유저 정보를 sessionStorage에 저장 (새로고침해도 유지)
         sessionStorage.setItem("user", JSON.stringify(data.user));
         setStatus({ type: "success", msg: data.message });
-
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1000);
+        setTimeout(() => navigate("/dashboard"), 1000);
       } else {
         setStatus({ type: "error", msg: data.error || "로그인 실패" });
       }
