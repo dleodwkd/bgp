@@ -109,14 +109,6 @@ export default function FileDownloader({
                 {/* 휴지통이 아닐 때만 표시 */}
                 {!file.is_deleted && (
                   <>
-                    {/* 즐겨찾기 */}
-                    <button
-                      onClick={() => handleFavorite(file.id)}
-                      style={btnStyle(file.is_favorite ? "#f59e0b" : "#6b7280")}
-                    >
-                      {file.is_favorite ? "★ 해제" : "☆ 즐겨찾기"}
-                    </button>
-
                     {/* 공유 토글 — 업로드한 사람만 가능 */}
                     {isOwner(file) && (
                       <button
@@ -124,6 +116,17 @@ export default function FileDownloader({
                         style={btnStyle(file.is_shared ? "#8b5cf6" : "#6b7280")}
                       >
                         {file.is_shared ? "🔗 공유해제" : "🔗 공유하기"}
+                      </button>
+                    )}
+                    {/* 즐겨찾기 */}
+                    {isOwner(file) && (
+                      <button
+                        onClick={() => handleFavorite(file.id)}
+                        style={btnStyle(
+                          file.is_favorite ? "#f59e0b" : "#6b7280",
+                        )}
+                      >
+                        {file.is_favorite ? "★ 해제" : "☆ 즐겨찾기"}
                       </button>
                     )}
 
