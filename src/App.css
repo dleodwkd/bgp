@@ -442,7 +442,42 @@ body {
 }
 
 /* =====================================================
-   5. 파일 리스트 아이템
+   5. 스켈레톤 로딩
+   ===================================================== */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 10px;
+  border-bottom: 1px solid #eee;
+  gap: 12px;
+}
+
+.skeleton-text {
+  height: 14px;
+  border-radius: 4px;
+}
+
+.skeleton-btn {
+  height: 28px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* =====================================================
+   6. 파일 리스트 아이템
    ===================================================== */
 .file-item {
   display: flex;

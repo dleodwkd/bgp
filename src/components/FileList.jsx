@@ -4,6 +4,26 @@ import ImageUploader from "./ImageUploader";
 import FileDownloader from "./FileDownloader";
 import "../App.css";
 
+function SkeletonList({ rows = 5 }) {
+  return (
+    <ul style={{ listStyle: "none", padding: 0 }}>
+      {Array.from({ length: rows }).map((_, i) => (
+        <li key={i} className="skeleton-row">
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+            <div className="skeleton skeleton-text" style={{ width: "55%" }} />
+            <div className="skeleton skeleton-text" style={{ width: "30%" }} />
+          </div>
+          <div style={{ display: "flex", gap: "6px" }}>
+            <div className="skeleton skeleton-btn" style={{ width: "80px" }} />
+            <div className="skeleton skeleton-btn" style={{ width: "80px" }} />
+            <div className="skeleton skeleton-btn" style={{ width: "70px" }} />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function FileList() {
   const API_BASE = import.meta.env.VITE_EC2_IP;
 
@@ -20,57 +40,62 @@ export default function FileList() {
       : { nickname: "게스트", email: "guest@example.com" };
   });
 
-  // fetchS3Files 함수 전체를 아래로 교체
-  const fetchFiles = async (mode = "shared") => {
-    setLoadingList(true);
-    setError(null);
-    try {
-      let url;
-      if (mode === "mine")
-        url = `${API_BASE}/api/files/mine?email=${user.email}`;
-      else if (mode === "favorites")
-        url = `${API_BASE}/api/files/favorites?email=${user.email}`;
-      else if (mode === "recent")
-        url = `${API_BASE}/api/files/recent?email=${user.email}`;
-      else if (mode === "trash")
-        url = `${API_BASE}/api/files/trash?email=${user.email}`;
-      else url = `${API_BASE}/api/files?email=${user.email}`;
-
-      const res = await fetch(url);
-      const data = await res.json();
-
-      // DB 데이터를 기존 FileDownloader가 쓰는 형식으로 변환
-      // FileList.jsx — fetchFiles 함수 안 이 부분
-      const files = data
-        .filter((f) => f.file_name !== "__folder__")
-        .map((f) => ({
-          id: f.id,
-          name: f.file_name,
-          key: f.s3_key,
-          size: f.file_size ? (f.file_size / 1024).toFixed(2) + " KB" : "-",
-          date: new Date(f.created_at).toLocaleString(),
-          uploader_email: f.user_email,
-          is_favorite: f.is_favorite === 1 || f.is_favorite === true,
-          is_shared: f.is_shared === 1 || f.is_shared === true,
-          is_deleted: f.is_deleted === 1 || f.is_deleted === true,
-        }));
-
-      setFileList(files);
-    } catch (err) {
-      setError("파일 목록을 불러오지 못했습니다.");
-    } finally {
-      setLoadingList(false);
-    }
-  };
-
-  // activeMenu state 추가 (사이드바 메뉴 선택 상태)
   const [activeMenu, setActiveMenu] = useState("shared");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // useEffect 수정
+  const buildUrl = (mode) => {
+    const base = `${API_BASE}/api/files`;
+    const q = `email=${encodeURIComponent(user.email)}`;
+    if (mode === "mine")      return `${base}/mine?${q}`;
+    if (mode === "favorites") return `${base}/favorites?${q}`;
+    if (mode === "recent")    return `${base}/recent?${q}`;
+    if (mode === "trash")     return `${base}/trash?${q}`;
+    return `${base}?${q}`;
+  };
+
+  const parseFiles = (data) =>
+    data
+      .filter((f) => f.file_name !== "__folder__")
+      .map((f) => ({
+        id: f.id,
+        name: f.file_name,
+        key: f.s3_key,
+        size: f.file_size ? (f.file_size / 1024).toFixed(2) + " KB" : "-",
+        date: new Date(f.created_at).toLocaleString(),
+        uploader_email: f.user_email,
+        is_favorite: f.is_favorite === 1 || f.is_favorite === true,
+        is_shared: f.is_shared === 1 || f.is_shared === true,
+        is_deleted: f.is_deleted === 1 || f.is_deleted === true,
+      }));
+
+  // activeMenu 또는 refreshKey가 바뀔 때마다 실행
+  // AbortController로 이전 요청을 취소해 race condition 방지
   useEffect(() => {
-    fetchFiles(activeMenu);
-  }, [activeMenu]);
+    const controller = new AbortController();
+
+    const load = async () => {
+      setLoadingList(true);
+      setError(null);
+      try {
+        const res = await fetch(buildUrl(activeMenu), { signal: controller.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setFileList(parseFiles(data));
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        setError("파일 목록을 불러오지 못했습니다.");
+      } finally {
+        if (!controller.signal.aborted) setLoadingList(false);
+      }
+    };
+
+    load();
+    return () => controller.abort();
+  }, [activeMenu, refreshKey]);
+
+  // 업로드 완료·즐겨찾기·공유 등 조작 후 목록 새로고침
+  const fetchFiles = () => setRefreshKey((k) => k + 1);
 
   // 로그아웃 처리
   const handleLogout = () => {
@@ -205,9 +230,8 @@ export default function FileList() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        {/* ✅ 검색바 바로 아래 */}
         <div style={{ marginTop: "16px" }}>
-          <ImageUploader onUploadSuccess={() => fetchFiles(activeMenu)} />
+          <ImageUploader onUploadSuccess={fetchFiles} />
         </div>
 
         {/* 통계 카드 행 */}
@@ -251,8 +275,8 @@ export default function FileList() {
           </h3>
 
           {loadingList ? (
-            <p>목록을 불러오는 중...</p>
-          ) : filteredFiles.length === 0 ? ( // ✅ fileList → filteredFiles
+            <SkeletonList />
+          ) : filteredFiles.length === 0 ? (
             <div className="drop-zone-inline">
               <span>☁️</span>
               <span>
@@ -262,7 +286,7 @@ export default function FileList() {
           ) : (
             <FileDownloader
               files={filteredFiles}
-              onRefresh={() => fetchFiles(activeMenu)}
+              onRefresh={fetchFiles}
               activeMenu={activeMenu}
               currentUserEmail={user.email}
             />
