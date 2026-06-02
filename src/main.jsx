@@ -9,6 +9,7 @@ import App from "./App.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
+    <h1>GIT ACTION 적용 완료</h1>
     <App />
   </StrictMode>,
 );
