@@ -9,7 +9,14 @@ function SkeletonList({ rows = 5 }) {
     <ul style={{ listStyle: "none", padding: 0 }}>
       {Array.from({ length: rows }).map((_, i) => (
         <li key={i} className="skeleton-row">
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
+            }}
+          >
             <div className="skeleton skeleton-text" style={{ width: "55%" }} />
             <div className="skeleton skeleton-text" style={{ width: "30%" }} />
           </div>
@@ -47,10 +54,10 @@ export default function FileList() {
   const buildUrl = (mode) => {
     const base = `${API_BASE}/api/files`;
     const q = `email=${encodeURIComponent(user.email)}`;
-    if (mode === "mine")      return `${base}/mine?${q}`;
+    if (mode === "mine") return `${base}/mine?${q}`;
     if (mode === "favorites") return `${base}/favorites?${q}`;
-    if (mode === "recent")    return `${base}/recent?${q}`;
-    if (mode === "trash")     return `${base}/trash?${q}`;
+    if (mode === "recent") return `${base}/recent?${q}`;
+    if (mode === "trash") return `${base}/trash?${q}`;
     return `${base}?${q}`;
   };
 
@@ -78,7 +85,9 @@ export default function FileList() {
       setLoadingList(true);
       setError(null);
       try {
-        const res = await fetch(buildUrl(activeMenu), { signal: controller.signal });
+        const res = await fetch(buildUrl(activeMenu), {
+          signal: controller.signal,
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setFileList(parseFiles(data));

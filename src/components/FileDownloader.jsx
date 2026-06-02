@@ -2,7 +2,12 @@ import React, { useState } from "react";
 
 const API_BASE = import.meta.env.VITE_EC2_IP;
 
-export default function FileDownloader({ files, onRefresh, activeMenu, currentUserEmail }) {
+export default function FileDownloader({
+  files,
+  onRefresh,
+  activeMenu,
+  currentUserEmail,
+}) {
   const [downloading, setDownloading] = useState({});
 
   // ── 다운로드 ──────────────────────────────────────────
@@ -71,7 +76,8 @@ export default function FileDownloader({ files, onRefresh, activeMenu, currentUs
     if (onRefresh) onRefresh();
   };
 
-  const isOwner = (file) => currentUserEmail && currentUserEmail === file.uploader_email;
+  const isOwner = (file) =>
+    currentUserEmail && currentUserEmail === file.uploader_email;
 
   return (
     <div style={{ marginTop: "10px" }}>
