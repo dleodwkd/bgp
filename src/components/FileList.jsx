@@ -49,9 +49,10 @@ export default function FileList() {
           key: f.s3_key,
           size: f.file_size ? (f.file_size / 1024).toFixed(2) + " KB" : "-",
           date: new Date(f.created_at).toLocaleString(),
-          is_favorite: f.is_favorite === 1 || f.is_favorite === true, // ✅
-          is_shared: f.is_shared === 1 || f.is_shared === true, // ✅
-          is_deleted: f.is_deleted === 1 || f.is_deleted === true, // ✅
+          uploader_email: f.user_email,
+          is_favorite: f.is_favorite === 1 || f.is_favorite === true,
+          is_shared: f.is_shared === 1 || f.is_shared === true,
+          is_deleted: f.is_deleted === 1 || f.is_deleted === true,
         }));
 
       setFileList(files);
@@ -64,6 +65,7 @@ export default function FileList() {
 
   // activeMenu state 추가 (사이드바 메뉴 선택 상태)
   const [activeMenu, setActiveMenu] = useState("shared");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // useEffect 수정
   useEffect(() => {
@@ -92,10 +94,23 @@ export default function FileList() {
     trash: "휴지통",
   };
 
+  const handleMenuClick = (menu) => {
+    setActiveMenu(menu);
+    setSidebarOpen(false);
+  };
+
   return (
     <div className="app-layout">
+      {/* 모바일 사이드바 오버레이 */}
+      {sidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ── 사이드바 (Sidebar) ────────────────────────────── */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="logo">
           <span className="logo-icon">☁</span>
           <div>
@@ -107,35 +122,35 @@ export default function FileList() {
         <nav className="sidebar-nav">
           <div
             className={`nav-item ${activeMenu === "shared" ? "active" : ""}`}
-            onClick={() => setActiveMenu("shared")}
+            onClick={() => handleMenuClick("shared")}
           >
             🔗 공유된 파일
           </div>
 
           <div
             className={`nav-item ${activeMenu === "mine" ? "active" : ""}`}
-            onClick={() => setActiveMenu("mine")}
+            onClick={() => handleMenuClick("mine")}
           >
             📁 내 파일
           </div>
 
           <div
             className={`nav-item ${activeMenu === "favorites" ? "active" : ""}`}
-            onClick={() => setActiveMenu("favorites")}
+            onClick={() => handleMenuClick("favorites")}
           >
             ⭐ 즐겨찾기
           </div>
 
           <div
             className={`nav-item ${activeMenu === "recent" ? "active" : ""}`}
-            onClick={() => setActiveMenu("recent")}
+            onClick={() => handleMenuClick("recent")}
           >
             🕐 최근 항목
           </div>
 
           <div
             className={`nav-item ${activeMenu === "trash" ? "active" : ""}`}
-            onClick={() => setActiveMenu("trash")}
+            onClick={() => handleMenuClick("trash")}
           >
             🗑 휴지통
           </div>
@@ -172,9 +187,14 @@ export default function FileList() {
       <main className="main-content">
         {/* 상단바 */}
         <header className="topbar">
-          {/* topbar-title 부분 */}
+          <button
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarOpen((v) => !v)}
+            aria-label="메뉴 열기"
+          >
+            ☰
+          </button>
           <h1 className="topbar-title">{menuTitle[activeMenu]}</h1>
-          {/* ImageUploader 여기서 제거 */}
         </header>
         <div className="search-wrap">
           <span>🔍</span>
@@ -244,6 +264,7 @@ export default function FileList() {
               files={filteredFiles}
               onRefresh={() => fetchFiles(activeMenu)}
               activeMenu={activeMenu}
+              currentUserEmail={user.email}
             />
           )}
         </div>

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 const API_BASE = import.meta.env.VITE_EC2_IP;
 
-export default function FileDownloader({ files, onRefresh, activeMenu }) {
+export default function FileDownloader({ files, onRefresh, activeMenu, currentUserEmail }) {
   const [downloading, setDownloading] = useState({});
 
   // ── 다운로드 ──────────────────────────────────────────
@@ -71,35 +71,26 @@ export default function FileDownloader({ files, onRefresh, activeMenu }) {
     if (onRefresh) onRefresh();
   };
 
+  const isOwner = (file) => currentUserEmail && currentUserEmail === file.uploader_email;
+
   return (
     <div style={{ marginTop: "10px" }}>
       {files && files.length > 0 ? (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {files.map((file) => (
-            <li
-              key={file.key || file.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "10px",
-                borderBottom: "1px solid #eee",
-              }}
-            >
+            <li key={file.key || file.id} className="file-item">
               {/* 파일 정보 */}
-              <span style={{ flex: 1 }}>
+              <span className="file-info">
                 {file.is_favorite ? "⭐ " : ""}
                 {file.is_shared ? "🔗 " : ""}
                 {file.name}
-                <span
-                  style={{ color: "#999", fontSize: "12px", marginLeft: "8px" }}
-                >
+                <span className="file-meta">
                   {file.size} · {file.date}
                 </span>
               </span>
 
               {/* 액션 버튼 */}
-              <div style={{ display: "flex", gap: "6px" }}>
+              <div className="file-actions">
                 {/* 다운로드 */}
                 <button
                   onClick={() => handleDownload(file.key, file.name, file.id)}
@@ -120,26 +111,30 @@ export default function FileDownloader({ files, onRefresh, activeMenu }) {
                       {file.is_favorite ? "★ 해제" : "☆ 즐겨찾기"}
                     </button>
 
-                    {/* 공유하기 */}
-                    <button
-                      onClick={() => handleShare(file.id)}
-                      style={btnStyle(file.is_shared ? "#8b5cf6" : "#6b7280")}
-                    >
-                      {file.is_shared ? "🔗 공유해제" : "🔗 공유하기"}
-                    </button>
+                    {/* 공유 토글 — 업로드한 사람만 가능 */}
+                    {isOwner(file) && (
+                      <button
+                        onClick={() => handleShare(file.id)}
+                        style={btnStyle(file.is_shared ? "#8b5cf6" : "#6b7280")}
+                      >
+                        {file.is_shared ? "🔗 공유해제" : "🔗 공유하기"}
+                      </button>
+                    )}
 
                     {/* 휴지통으로 */}
-                    <button
-                      onClick={() => handleTrash(file.id)}
-                      style={btnStyle("#ef4444")}
-                    >
-                      🗑 삭제
-                    </button>
+                    {isOwner(file) && (
+                      <button
+                        onClick={() => handleTrash(file.id)}
+                        style={btnStyle("#ef4444")}
+                      >
+                        🗑 삭제
+                      </button>
+                    )}
                   </>
                 )}
 
-                {/* 휴지통 탭일 때만 표시 */}
-                {file.is_deleted && (
+                {/* 휴지통 탭 — 복원/영구삭제도 업로드한 사람만 */}
+                {file.is_deleted && isOwner(file) && (
                   <>
                     <button
                       onClick={() => handleRestore(file.id)}
