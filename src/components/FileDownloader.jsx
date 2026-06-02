@@ -76,8 +76,9 @@ export default function FileDownloader({
     if (onRefresh) onRefresh();
   };
 
-  const isOwner = (file) =>
+  const isOwner = (file) => {
     currentUserEmail && currentUserEmail === file.uploader_email;
+  };
 
   return (
     <div style={{ marginTop: "10px" }}>
@@ -86,10 +87,15 @@ export default function FileDownloader({
           {files.map((file) => (
             <li key={file.key || file.id} className="file-item">
               {/* 파일 정보 */}
+
               <span className="file-info">
                 {file.is_favorite ? "⭐ " : ""}
                 {file.is_shared ? "🔗 " : ""}
                 {file.name}
+
+                {/* file의 소유자 이름 */}
+                {file.uploader_email}
+
                 <span className="file-meta">
                   {file.size} · {file.date}
                 </span>
@@ -118,6 +124,7 @@ export default function FileDownloader({
                         {file.is_shared ? "🔗 공유해제" : "🔗 공유하기"}
                       </button>
                     )}
+
                     {/* 즐겨찾기 */}
                     {isOwner(file) && (
                       <button
