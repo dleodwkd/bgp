@@ -27,6 +27,7 @@ export default function ImageUploader({ onUploadSuccess }) {
 
     try {
       const savedUser = sessionStorage.getItem("user");
+      const user = savedUser ? JSON.parse(savedUser) : null;
       const userEmail = savedUser
         ? JSON.parse(savedUser).email
         : "guest@example.com";
@@ -44,8 +45,13 @@ export default function ImageUploader({ onUploadSuccess }) {
         }),
       });
 
-      if (!response.ok) throw new Error("Presigned URL 발급 실패");
-      const { url, key } = await response.json();
+      const data = await response.json(); // 먼저 한 번만 읽기
+
+      if (!response.ok) {
+        throw new Error(data.error || "Presigned URL 발급 실패");
+      }
+
+      const { url, key } = data; // 정상이면 여기서 꺼내기
 
       // XMLHttpRequest로 progress 추적
       await new Promise((resolve, reject) => {
@@ -62,8 +68,30 @@ export default function ImageUploader({ onUploadSuccess }) {
         xhr.setRequestHeader("Content-Type", file.type);
         xhr.send(file);
       });
-
       const finalUrl = `https://${import.meta.env.VITE_S3_BUCKET_NAME}.s3.${import.meta.env.VITE_AWS_REGION}.amazonaws.com/${key}`;
+
+      if (user?.id) {
+        const recordRes = await fetch(
+          `${import.meta.env.VITE_EC2_IP}/api/files/upload-success`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: user.id,
+              fileName: file.name,
+              s3Url: finalUrl,
+              fileSize: file.size,
+            }),
+          },
+        );
+
+        if (!recordRes.ok) {
+          const err = await recordRes.json();
+          console.log(recordRes);
+          throw new Error(err.error); // "개인 저장 공간이 부족하여..." 그대로 alert 뜸
+        }
+      }
+
       setImageUrl(finalUrl);
       if (onUploadSuccess) onUploadSuccess();
     } catch (error) {
