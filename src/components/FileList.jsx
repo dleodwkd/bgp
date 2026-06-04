@@ -36,6 +36,7 @@ export default function FileList() {
 
   const navigate = useNavigate();
   const [fileList, setFileList] = useState([]); // S3 파일 목록 저장
+  const [userFileList, setUserFileList] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
   const [error, setError] = useState(null);
 
@@ -89,8 +90,19 @@ export default function FileList() {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
         const data = await res.json();
-        setFileList(parseFiles(data));
+        const parsed = parseFiles(data);
+        setFileList(parsed);
+
+        // 프로그레스바
+        const mineRes = await fetch(
+          `${API_BASE}/api/files/mine?email=${encodeURIComponent(user.email)}`,
+          { signal: controller.signal },
+        );
+        if (!mineRes.ok) throw new Error(`HTTP ${mineRes.status}`);
+        const mineData = await mineRes.json();
+        setUserFileList(parseFiles(mineData));
       } catch (err) {
         if (err.name === "AbortError") return;
         setError("파일 목록을 불러오지 못했습니다.");
@@ -194,12 +206,12 @@ export default function FileList() {
         <div className="storage-info">
           <div className="storage-label">
             <span>저장 공간</span>
-            <span>{fileList.length} 개 파일</span>
+            <span>{userFileList.length} 개 파일</span>
           </div>
           <div className="storage-bar">
             <div
               className="storage-fill"
-              style={{ width: fileList.length > 0 ? "45%" : "0%" }}
+              style={{ width: userFileList.length > 0 ? "45%" : "0%" }}
             />
           </div>
         </div>
