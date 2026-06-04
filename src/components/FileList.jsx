@@ -62,6 +62,17 @@ export default function FileList() {
     return `${base}?${q}`;
   };
 
+  const STORAGE_LIMIT = 1 * 1024 * 1024 * 1024; // 1 GB
+
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return "0 B";
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    if (bytes < 1024 * 1024 * 1024)
+      return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+  };
+
   const parseFiles = (data) =>
     data
       .filter((f) => f.file_name !== "__folder__")
@@ -69,6 +80,7 @@ export default function FileList() {
         id: f.id,
         name: f.file_name,
         key: f.s3_key,
+        rawSize: f.file_size || 0,
         size: f.file_size ? (f.file_size / 1024).toFixed(2) + " KB" : "-",
         date: new Date(f.created_at).toLocaleString(),
         uploader_email: f.user_email,
@@ -203,18 +215,30 @@ export default function FileList() {
         </nav>
 
         {/* 스토리지 사용량 바 */}
-        <div className="storage-info">
-          <div className="storage-label">
-            <span>저장 공간</span>
-            <span>{userFileList.length} 개 파일</span>
-          </div>
-          <div className="storage-bar">
-            <div
-              className="storage-fill"
-              style={{ width: userFileList.length > 0 ? "45%" : "0%" }}
-            />
-          </div>
-        </div>
+        {(() => {
+          const totalUsed = userFileList.reduce((sum, f) => sum + f.rawSize, 0);
+          const pct = Math.min((totalUsed / STORAGE_LIMIT) * 100, 100);
+          const barColor =
+            pct > 90 ? "#ef4444" : pct > 70 ? "#f59e0b" : "#4a72b2";
+          return (
+            <div className="storage-info">
+              <div className="storage-label">
+                <span>저장 공간</span>
+                <span className="storage-pct">{pct.toFixed(1)}%</span>
+              </div>
+              <div className="storage-bar">
+                <div
+                  className="storage-fill"
+                  style={{ width: `${pct}%`, backgroundColor: barColor }}
+                />
+              </div>
+              <div className="storage-usage-text">
+                <span>{formatBytes(totalUsed)}</span>
+                <span>/ 1 GB</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* 로그인한 유저 영역 */}
         <div className="user-area">

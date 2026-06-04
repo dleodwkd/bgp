@@ -66,7 +66,16 @@ export default function FileDownloader({
       !confirm(`"${fileName}" 을 영구 삭제하시겠습니까?\n복구가 불가능합니다.`)
     )
       return;
-    await fetch(`${API_BASE}/api/files/${fileId}`, { method: "DELETE" });
+
+    // ✅ sessionStorage에서 userId 꺼내기
+    const savedUser = JSON.parse(sessionStorage.getItem("user"));
+
+    await fetch(`${API_BASE}/api/files/${fileId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: savedUser?.id }), // ✅ 추가
+    });
+
     if (onRefresh) onRefresh();
   };
 

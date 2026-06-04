@@ -127,31 +127,48 @@ body {
 
 /* 하단 저장 공간 알림 바 */
 .storage-info {
-  background-color: #f8f9fa;
+  background-color: #f1f5f9;
   padding: 14px;
   border-radius: 10px;
   margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
 }
 
 .storage-label {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 12px;
+  color: #4a5568;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.storage-pct {
+  font-size: 11px;
   color: #718096;
-  margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .storage-bar {
-  height: 6px;
+  height: 8px;
   background-color: #e2e8f0;
-  border-radius: 3px;
+  border-radius: 999px;
   overflow: hidden;
+  margin-bottom: 8px;
 }
 
 .storage-fill {
   height: 100%;
-  background-color: #4a72b2;
-  border-radius: 3px;
+  border-radius: 999px;
+  transition: width 0.4s ease, background-color 0.4s ease;
+}
+
+.storage-usage-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #718096;
 }
 
 /* 유저 및 인증 영역 */
