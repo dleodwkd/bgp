@@ -76,9 +76,8 @@ export default function FileDownloader({
     if (onRefresh) onRefresh();
   };
 
-  const isOwner = (file) => {
+  const isOwner = (file) =>
     currentUserEmail && currentUserEmail === file.uploader_email;
-  };
 
   return (
     <div style={{ marginTop: "10px" }}>
@@ -92,12 +91,9 @@ export default function FileDownloader({
                 {file.is_favorite ? "⭐ " : ""}
                 {file.is_shared ? "🔗 " : ""}
                 {file.name}
-
-                {/* file의 소유자 이름 */}
-                {file.uploader_email}
-
                 <span className="file-meta">
-                  {file.size} · {file.date}
+                  {/* file의 소유자 이름 */}
+                  {file.uploader_email} · {file.size} · {file.date}
                 </span>
               </span>
 
