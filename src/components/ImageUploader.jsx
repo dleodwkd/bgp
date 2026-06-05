@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 
-export default function ImageUploader({ onUploadSuccess }) {
+export default function ImageUploader({ onUploadSuccess, folderPath = null }) {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -42,6 +42,7 @@ export default function ImageUploader({ onUploadSuccess }) {
           contentType: file.type,
           fileSize: file.size,
           userEmail,
+          folder_path: folderPath,
         }),
       });
 
@@ -81,6 +82,7 @@ export default function ImageUploader({ onUploadSuccess }) {
               fileName: file.name,
               s3Url: finalUrl,
               fileSize: file.size,
+              folder_path: folderPath,
             }),
           },
         );

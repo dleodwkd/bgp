@@ -7,6 +7,7 @@ export default function FileDownloader({
   onRefresh,
   activeMenu,
   currentUserEmail,
+  onFolderClick,
 }) {
   const [downloading, setDownloading] = useState({});
 
@@ -94,56 +95,27 @@ export default function FileDownloader({
         <ul style={{ listStyle: "none", padding: 0 }}>
           {files.map((file) => (
             <li key={file.key || file.id} className="file-item">
-              {/* 파일 정보 */}
-
-              <span className="file-info">
-                {file.is_favorite ? "⭐ " : ""}
-                {file.is_shared ? "🔗 " : ""}
-                {file.name}
-                <span className="file-meta">
-                  {/* file의 소유자 이름 */}
-                  {file.uploader_email} · {file.size} · {file.date}
-                </span>
-              </span>
-
-              {/* 액션 버튼 */}
-              <div className="file-actions">
-                {/* 다운로드 */}
-                <button
-                  onClick={() => handleDownload(file.key, file.name, file.id)}
-                  disabled={downloading[file.key]}
-                  style={btnStyle("#007bff")}
-                >
-                  {downloading[file.key] ? "..." : "⬇ 다운로드"}
-                </button>
-
-                {/* 휴지통이 아닐 때만 표시 */}
-                {!file.is_deleted && (
-                  <>
-                    {/* 공유 토글 — 업로드한 사람만 가능 */}
-                    {isOwner(file) && (
-                      <button
-                        onClick={() => handleShare(file.id)}
-                        style={btnStyle(file.is_shared ? "#8b5cf6" : "#6b7280")}
-                      >
-                        {file.is_shared ? "🔗 공유해제" : "🔗 공유하기"}
-                      </button>
-                    )}
-
-                    {/* 즐겨찾기 */}
-                    {isOwner(file) && (
-                      <button
-                        onClick={() => handleFavorite(file.id)}
-                        style={btnStyle(
-                          file.is_favorite ? "#f59e0b" : "#6b7280",
-                        )}
-                      >
-                        {file.is_favorite ? "★ 해제" : "☆ 즐겨찾기"}
-                      </button>
-                    )}
-
-                    {/* 휴지통으로 */}
-                    {isOwner(file) && (
+              {file.isFolder ? (
+                /* ── 폴더 렌더링 ── */
+                <>
+                  <span
+                    className="file-info"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => onFolderClick && onFolderClick(file.name)}
+                  >
+                    📁 {file.name}
+                    <span className="file-meta">
+                      {file.uploader_email} · {file.date}
+                    </span>
+                  </span>
+                  <div className="file-actions">
+                    <button
+                      onClick={() => onFolderClick && onFolderClick(file.name)}
+                      style={btnStyle("#4a72b2")}
+                    >
+                      📂 열기
+                    </button>
+                    {isOwner(file) && !file.is_deleted && (
                       <button
                         onClick={() => handleTrash(file.id)}
                         style={btnStyle("#ef4444")}
@@ -151,27 +123,77 @@ export default function FileDownloader({
                         🗑 삭제
                       </button>
                     )}
-                  </>
-                )}
+                  </div>
+                </>
+              ) : (
+                /* ── 파일 렌더링 ── */
+                <>
+                  <span className="file-info">
+                    {file.is_favorite ? "⭐ " : ""}
+                    {file.is_shared ? "🔗 " : ""}
+                    {file.name}
+                    <span className="file-meta">
+                      {file.uploader_email} · {file.size} · {file.date}
+                    </span>
+                  </span>
 
-                {/* 휴지통 탭 — 복원/영구삭제도 업로드한 사람만 */}
-                {file.is_deleted && isOwner(file) && (
-                  <>
+                  <div className="file-actions">
                     <button
-                      onClick={() => handleRestore(file.id)}
-                      style={btnStyle("#10b981")}
+                      onClick={() => handleDownload(file.key, file.name, file.id)}
+                      disabled={downloading[file.key]}
+                      style={btnStyle("#007bff")}
                     >
-                      ↩ 복원
+                      {downloading[file.key] ? "..." : "⬇ 다운로드"}
                     </button>
-                    <button
-                      onClick={() => handleDelete(file.id, file.name)}
-                      style={btnStyle("#dc2626")}
-                    >
-                      💀 영구삭제
-                    </button>
-                  </>
-                )}
-              </div>
+
+                    {!file.is_deleted && (
+                      <>
+                        {isOwner(file) && (
+                          <button
+                            onClick={() => handleShare(file.id)}
+                            style={btnStyle(file.is_shared ? "#8b5cf6" : "#6b7280")}
+                          >
+                            {file.is_shared ? "🔗 공유해제" : "🔗 공유하기"}
+                          </button>
+                        )}
+                        {isOwner(file) && (
+                          <button
+                            onClick={() => handleFavorite(file.id)}
+                            style={btnStyle(file.is_favorite ? "#f59e0b" : "#6b7280")}
+                          >
+                            {file.is_favorite ? "★ 해제" : "☆ 즐겨찾기"}
+                          </button>
+                        )}
+                        {isOwner(file) && (
+                          <button
+                            onClick={() => handleTrash(file.id)}
+                            style={btnStyle("#ef4444")}
+                          >
+                            🗑 삭제
+                          </button>
+                        )}
+                      </>
+                    )}
+
+                    {file.is_deleted && isOwner(file) && (
+                      <>
+                        <button
+                          onClick={() => handleRestore(file.id)}
+                          style={btnStyle("#10b981")}
+                        >
+                          ↩ 복원
+                        </button>
+                        <button
+                          onClick={() => handleDelete(file.id, file.name)}
+                          style={btnStyle("#dc2626")}
+                        >
+                          💀 영구삭제
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
             </li>
           ))}
         </ul>
