@@ -139,7 +139,9 @@ export default function FileDownloader({
 
                   <div className="file-actions">
                     <button
-                      onClick={() => handleDownload(file.key, file.name, file.id)}
+                      onClick={() =>
+                        handleDownload(file.key, file.name, file.id)
+                      }
                       disabled={downloading[file.key]}
                       style={btnStyle("#007bff")}
                     >
@@ -151,7 +153,9 @@ export default function FileDownloader({
                         {isOwner(file) && (
                           <button
                             onClick={() => handleShare(file.id)}
-                            style={btnStyle(file.is_shared ? "#8b5cf6" : "#6b7280")}
+                            style={btnStyle(
+                              file.is_shared ? "#8b5cf6" : "#6b7280",
+                            )}
                           >
                             {file.is_shared ? "🔗 공유해제" : "🔗 공유하기"}
                           </button>
@@ -159,7 +163,9 @@ export default function FileDownloader({
                         {isOwner(file) && (
                           <button
                             onClick={() => handleFavorite(file.id)}
-                            style={btnStyle(file.is_favorite ? "#f59e0b" : "#6b7280")}
+                            style={btnStyle(
+                              file.is_favorite ? "#f59e0b" : "#6b7280",
+                            )}
                           >
                             {file.is_favorite ? "★ 해제" : "☆ 즐겨찾기"}
                           </button>

@@ -34,6 +34,8 @@ function SkeletonList({ rows = 5 }) {
 export default function FileList() {
   const API_BASE = import.meta.env.VITE_EC2_IP;
 
+  const [currentFolder, setCurrentFolder] = useState(null); // ← 이거 추가
+
   const navigate = useNavigate();
   const [fileList, setFileList] = useState([]); // S3 파일 목록 저장
   const [userFileList, setUserFileList] = useState([]);
@@ -304,14 +306,6 @@ export default function FileList() {
             ☰
           </button>
           <h1 className="topbar-title">{menuTitle[activeMenu]}</h1>
-          {activeMenu !== "trash" && (
-            <button
-              className="btn-outline"
-              onClick={() => setShowFolderModal(true)}
-            >
-              📁 새 폴더
-            </button>
-          )}
         </header>
         <div className="search-wrap">
           <span>🔍</span>
@@ -381,6 +375,7 @@ export default function FileList() {
               onRefresh={fetchFiles}
               activeMenu={activeMenu}
               currentUserEmail={user.email}
+              onFolderClick={(folderPath) => setCurrentFolder(folderPath)}
             />
           )}
         </div>
