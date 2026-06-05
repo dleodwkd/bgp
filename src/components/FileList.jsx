@@ -54,7 +54,6 @@ export default function FileList() {
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [folderName, setFolderName] = useState("");
   const [creatingFolder, setCreatingFolder] = useState(false);
-  const [currentFolder, setCurrentFolder] = useState(null);
 
   const buildUrl = (mode) => {
     const base = `${API_BASE}/api/files`;
@@ -82,7 +81,6 @@ export default function FileList() {
       id: f.id,
       isFolder: f.file_name === "__folder__",
       name: f.file_name === "__folder__" ? f.folder_path : f.file_name,
-      folder_path: f.folder_path || null,
       key: f.s3_key,
       rawSize: f.file_size || 0,
       size: f.file_size ? (f.file_size / 1024).toFixed(2) + " KB" : "-",
@@ -141,7 +139,10 @@ export default function FileList() {
       const res = await fetch(`${API_BASE}/api/folders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_email: user.email, folder_path: folderName.trim() }),
+        body: JSON.stringify({
+          user_email: user.email,
+          folder_path: folderName.trim(),
+        }),
       });
       if (!res.ok) throw new Error("폴더 생성에 실패했습니다.");
       setFolderName("");
@@ -165,17 +166,23 @@ export default function FileList() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // ── 검색 필터링 (프론트에서 처리) ────────────────────────
+  // FileList.jsx
   const filteredFiles = fileList
     .filter((f) => {
-      if (!f.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (!f.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        return false;
       if (currentFolder === null) {
-        // 루트: 폴더 항목 전체 + folder_path 없는 파일만 표시
-        return f.isFolder || !f.folder_path;
+        return (
+          f.isFolder ||
+          !f.folder_path ||
+          f.folder_path === "" ||
+          f.folder_path === "/"
+        );
       }
-      // 폴더 내부: 해당 folder_path 가진 파일만 표시
       return !f.isFolder && f.folder_path === currentFolder;
     })
     .sort((a, b) => (b.isFolder ? 1 : 0) - (a.isFolder ? 1 : 0));
+
   const menuTitle = {
     shared: "공유된 파일",
     mine: "내 파일",
@@ -187,7 +194,6 @@ export default function FileList() {
   const handleMenuClick = (menu) => {
     setActiveMenu(menu);
     setSidebarOpen(false);
-    setCurrentFolder(null);
   };
 
   return (
@@ -298,7 +304,7 @@ export default function FileList() {
             ☰
           </button>
           <h1 className="topbar-title">{menuTitle[activeMenu]}</h1>
-          {activeMenu !== "trash" && currentFolder === null && (
+          {activeMenu !== "trash" && (
             <button
               className="btn-outline"
               onClick={() => setShowFolderModal(true)}
@@ -316,21 +322,8 @@ export default function FileList() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        {currentFolder && (
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
-            <span
-              style={{ cursor: "pointer", color: "#1a73e8" }}
-              onClick={() => setCurrentFolder(null)}
-            >
-              홈
-            </span>
-            <span style={{ color: "#a0aec0" }}>/</span>
-            <span style={{ color: "#222", fontWeight: 600 }}>📁 {currentFolder}</span>
-          </div>
-        )}
-
         <div style={{ marginTop: "16px" }}>
-          <ImageUploader onUploadSuccess={fetchFiles} folderPath={currentFolder} />
+          <ImageUploader onUploadSuccess={fetchFiles} />
         </div>
 
         {/* 통계 카드 행 */}
@@ -388,66 +381,10 @@ export default function FileList() {
               onRefresh={fetchFiles}
               activeMenu={activeMenu}
               currentUserEmail={user.email}
-              onFolderClick={setCurrentFolder}
             />
           )}
         </div>
       </main>
-
-      {showFolderModal && (
-        <div
-          className="modal-backdrop"
-          onClick={() => { setShowFolderModal(false); setFolderName(""); }}
-        >
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "white",
-              borderRadius: "12px",
-              padding: "28px",
-              width: "360px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-            }}
-          >
-            <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700 }}>
-              새 폴더 만들기
-            </h2>
-            <input
-              type="text"
-              value={folderName}
-              onChange={(e) => setFolderName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
-              placeholder="폴더 이름"
-              autoFocus
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: "8px",
-                padding: "10px 14px",
-                fontSize: "14px",
-                outline: "none",
-              }}
-            />
-            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-              <button
-                className="btn-outline"
-                onClick={() => { setShowFolderModal(false); setFolderName(""); }}
-              >
-                취소
-              </button>
-              <button
-                className="btn-primary"
-                onClick={handleCreateFolder}
-                disabled={!folderName.trim() || creatingFolder}
-              >
-                {creatingFolder ? "생성 중..." : "만들기"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
