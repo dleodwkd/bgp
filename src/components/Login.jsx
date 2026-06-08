@@ -16,7 +16,7 @@ export const authStyles = `
   }
   body {
     background: var(--bg);
-    color: var(--text);
+    // color: var(--text);
     font-family: 'DM Sans', sans-serif;
     min-height: 100vh;
   }
@@ -58,9 +58,9 @@ export const authStyles = `
   .tab.active { background: var(--accent); color: #fff; }
   .field { margin-bottom: 1.1rem; }
   .field label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
-  .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+  .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; color: #2f4f4f; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
   .field input:focus { border-color: var(--accent); }
-  .field input::placeholder { color: var(--muted); }
+  .field input::-webkit-input-placeholder{color: #e8e8f0;}
   .btn { width: 100%; padding: 0.85rem; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s, transform 0.1s; }
   .btn:hover { opacity: 0.88; }
   .btn:active { transform: scale(0.98); }
@@ -120,7 +120,7 @@ export default function Login() {
         <div className="bg-orb bg-orb-2" />
         <div className="card">
           <div className="logo">
-            Global<span>Share</span>
+            <span>BGP Share</span>
           </div>
           <div className="subtitle">파일 공유 플랫폼</div>
 

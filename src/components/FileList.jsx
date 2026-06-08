@@ -211,9 +211,9 @@ export default function FileList() {
       {/* ── 사이드바 (Sidebar) ────────────────────────────── */}
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="logo">
-          <span className="logo-icon">☁</span>
+          <img className="logo-icon" src="image/bgp_logo.png" />
           <div>
-            <div className="logo-name">GlobalShare</div>
+            <div className="logo-name">BGP Share</div>
             <div className="logo-sub">Cloud Storage</div>
           </div>
         </div>
