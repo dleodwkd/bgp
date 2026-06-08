@@ -52,8 +52,22 @@ export const authStyles = `
     z-index: 1;
     box-shadow: 0 0 60px rgba(108,99,255,0.08);
   }
-  .logo { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.3rem; }
-  .logo span { color: var(--accent); }
+  .lp-nav {
+    padding: 1.2rem 2rem;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid #ebebf3;
+  }
+  /* 이걸로 교체 */
+  .lp-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin-bottom: 0.3rem;   /* ← subtitle과 간격 */
+  }
+  .lp-logo span { color: #6c63ff; }
   .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
   .tab-row { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 2rem; gap: 4px; }
   .tab { flex: 1; padding: 0.6rem; border: none; border-radius: 7px; background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
@@ -121,8 +135,8 @@ export default function Login() {
         <div className="bg-orb bg-orb-1" />
         <div className="bg-orb bg-orb-2" />
         <div className="card">
-          <div className="logo">
-            <span>BGP Share</span>
+          <div className="lp-logo">
+            <span>BGP</span> Share
           </div>
           <div className="subtitle">파일 공유 플랫폼</div>
 

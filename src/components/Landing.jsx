@@ -13,13 +13,10 @@ const styles = `
     font-family: 'DM Sans', sans-serif;
     overflow: hidden;
   }
-
-  /* nav */
   .lp-nav {
+    padding: 1.2rem 2rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 1.25rem 2.5rem;
     background: #fff;
     border-bottom: 1px solid #ebebf3;
   }

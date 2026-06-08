@@ -58,8 +58,8 @@ export default function Signup() {
         <div className="bg-orb bg-orb-1" />
         <div className="bg-orb bg-orb-2" />
         <div className="card">
-          <div className="logo">
-            <span>BGP Share</span>
+          <div className="lp-logo">
+            <span>BGP</span> Share
           </div>
           <div className="subtitle">파일 공유 플랫폼</div>
 
