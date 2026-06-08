@@ -39,7 +39,7 @@ export default function Signup() {
 
         // 1.5초 후 성공 메시지 보여주고 자동으로 로그인 창으로 라우팅
         setTimeout(() => {
-          navigate("/");
+          navigate("/login");
         }, 1500);
       } else {
         setStatus({ type: "error", msg: data.error || "오류가 발생했습니다." });
