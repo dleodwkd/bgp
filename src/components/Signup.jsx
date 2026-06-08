@@ -33,6 +33,7 @@ export default function Signup() {
       });
       const data = await res.json();
       if (res.ok) {
+        alert(data.message || "회원가입이 완료되었습니다!"); // 추가
         setStatus({ type: "success", msg: data.message || "회원가입 완료!" });
         setForm({ email: "", password_hash: "", nickname: "" });
 
@@ -63,7 +64,7 @@ export default function Signup() {
           <div className="subtitle">파일 공유 플랫폼</div>
 
           <div className="tab-row">
-            <button className="tab" onClick={() => navigate("/")}>
+            <button className="tab" onClick={() => navigate("/login")}>
               로그인
             </button>
             <button className="tab active">회원가입</button>

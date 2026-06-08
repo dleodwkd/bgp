@@ -6,13 +6,15 @@ export const authStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --border: #1e1e2e;
+    --bg: #f0f0f8;
+    --surface: #ffffff;
+    --border: #e0e0ee;
     --accent: #6c63ff;
     --accent2: #ff6584;
-    --text: #e8e8f0;
-    --muted: #6b6b80;
-    --success: #4ade80;
-    --error: #f87171;
+    --text: #1a1a2e;
+    --muted: #4c4c52;
+    --success: #16a34a;
+    --error: #dc2626;
   }
   body {
     background: var(--bg);
@@ -60,7 +62,7 @@ export const authStyles = `
   .field label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
   .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; color: #2f4f4f; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
   .field input:focus { border-color: var(--accent); }
-  .field input::-webkit-input-placeholder{color: #e8e8f0;}
+  .field input::-webkit-input-placeholder{color: #9d9ddb5d;}
   .btn { width: 100%; padding: 0.85rem; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s, transform 0.1s; }
   .btn:hover { opacity: 0.88; }
   .btn:active { transform: scale(0.98); }
